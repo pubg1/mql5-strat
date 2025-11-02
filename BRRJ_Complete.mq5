@@ -85,7 +85,7 @@ double g_vp_vah = 0.0;
 bool   g_vp_valid = false;
 
 //============================ Utils ===================================
-double _Point()
+double PointSize()
 {
   double point = 0.0;
   if(!SymbolInfoDouble(_Symbol, SYMBOL_POINT, point))
@@ -95,14 +95,14 @@ double _Point()
   return(point);
 }
 
-int _Digits()
+int SymbolDigits()
 {
   long digits = 5;
   SymbolInfoInteger(_Symbol, SYMBOL_DIGITS, digits);
   return((int)digits);
 }
 
-double NormalizeP(double price){ return(NormalizeDouble(price, _Digits())); }
+double NormalizeP(double price){ return(NormalizeDouble(price, SymbolDigits())); }
 
 double PointValueMoney()
 {
@@ -110,8 +110,8 @@ double PointValueMoney()
   double tick_size = 0.0;
   SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE, tick_value);
   SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_SIZE,  tick_size);
-  if(tick_size<=0.0) tick_size = _Point();
-  double pv = tick_value / tick_size * _Point();
+  if(tick_size<=0.0) tick_size = PointSize();
+  double pv = tick_value / tick_size * PointSize();
   return(pv);
 }
 
@@ -129,7 +129,7 @@ bool SpreadOK()
   SymbolInfoDouble(_Symbol, SYMBOL_ASK, ask);
   SymbolInfoDouble(_Symbol, SYMBOL_BID, bid);
   if(ask<=0.0 || bid<=0.0) return(false);
-  double sp = (ask - bid)/_Point();
+  double sp = (ask - bid)/PointSize();
   return((int)sp <= Inp_MaxSpreadPoints);
 }
 
@@ -347,7 +347,7 @@ bool VP_Calc(int lookback, int rows, int valueAreaPct, double &poc, double &val,
 
   double span = highest - lowest;
   double step = span / (double)rows;
-  if(step < _Point()) step = _Point();
+  if(step < PointSize()) step = PointSize();
 
   double hist[];
   ArrayResize(hist, rows);
@@ -511,7 +511,7 @@ int Signal_Breakout()
     bar = bar + 1;
   }
 
-  double buffer = Inp_BO_BufferPts * _Point();
+  double buffer = Inp_BO_BufferPts * PointSize();
   double c1 = iClose(_Symbol, PERIOD_CURRENT, 1);
   double c0 = iClose(_Symbol, PERIOD_CURRENT, 0);
 
@@ -625,7 +625,7 @@ double StopsLevelPoints()
   SymbolInfoInteger(_Symbol, SYMBOL_TRADE_STOPS_LEVEL, stopsLevel);
   double stops = (double)stopsLevel;
   if(stops < 0.0) stops = 0.0;
-  return(stops * _Point());
+  return(stops * PointSize());
 }
 
 double FreezeLevelPoints()
@@ -634,7 +634,7 @@ double FreezeLevelPoints()
   SymbolInfoInteger(_Symbol, SYMBOL_TRADE_FREEZE_LEVEL, freezeLevel);
   double freeze = (double)freezeLevel;
   if(freeze < 0.0) freeze = 0.0;
-  return(freeze * _Point());
+  return(freeze * PointSize());
 }
 
 bool AdjustStopsForLevels(int dir, double price, double &sl, double &tp)
@@ -673,23 +673,23 @@ bool ComputeSLTP(int dir, double &lot, double &sl, double &tp)
   if(price<=0.0) return(false);
 
   double atr = GetATR(1);
-  if(atr<=0.0) atr = 10.0 * _Point();
+  if(atr<=0.0) atr = 10.0 * PointSize();
 
   double riskDist = atr * Inp_ATR_Mult;
   if(!Inp_UseATR_Stop)
   {
-    double fallback = (double)Inp_BO_BufferPts * _Point();
-    if(fallback <= 0.0) fallback = 20.0 * _Point();
+    double fallback = (double)Inp_BO_BufferPts * PointSize();
+    if(fallback <= 0.0) fallback = 20.0 * PointSize();
     riskDist = fallback;
   }
-  if(riskDist < 10.0 * _Point()) riskDist = 10.0 * _Point();
+  if(riskDist < 10.0 * PointSize()) riskDist = 10.0 * PointSize();
 
   double balance = AccountInfoDouble(ACCOUNT_BALANCE);
   double riskMoney = balance * Inp_RiskPercent / 100.0;
   if(riskMoney <= 0.0) riskMoney = balance * 0.005;
 
   double pointValue = PointValueMoney();
-  double pointCount = riskDist / _Point();
+  double pointCount = riskDist / PointSize();
   if(pointValue<=0.0 || pointCount<=0.0) return(false);
 
   lot = riskMoney / (pointCount * pointValue);
@@ -783,15 +783,15 @@ void MoveToBreakEven()
     double price = (type==POSITION_TYPE_BUY) ? bid : ask;
 
     double atr = GetATR(1);
-    if(atr<=0.0) atr = 10.0 * _Point();
+    if(atr<=0.0) atr = 10.0 * PointSize();
     double risk = atr * Inp_ATR_Mult;
     if(!Inp_UseATR_Stop)
     {
-      double fallback = (double)Inp_BO_BufferPts * _Point();
-      if(fallback <= 0.0) fallback = 20.0 * _Point();
+      double fallback = (double)Inp_BO_BufferPts * PointSize();
+      if(fallback <= 0.0) fallback = 20.0 * PointSize();
       risk = fallback;
     }
-    if(risk <= 0.0) risk = 10.0 * _Point();
+    if(risk <= 0.0) risk = 10.0 * PointSize();
 
     double trigger = risk * Inp_BE_TrigRR;
     double offset = risk * Inp_BE_OffsetR;
