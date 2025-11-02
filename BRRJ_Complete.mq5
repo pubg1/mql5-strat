@@ -85,8 +85,23 @@ double g_vp_vah = 0.0;
 bool   g_vp_valid = false;
 
 //============================ Utils ===================================
-double _Point() { return(SymbolInfoDouble(_Symbol, SYMBOL_POINT)); }
-int    _Digits(){ return((int)SymbolInfoInteger(_Symbol, SYMBOL_DIGITS)); }
+double _Point()
+{
+  double point = 0.0;
+  if(!SymbolInfoDouble(_Symbol, SYMBOL_POINT, point))
+  {
+    point = 0.0001;
+  }
+  return(point);
+}
+
+int _Digits()
+{
+  long digits = 5;
+  SymbolInfoInteger(_Symbol, SYMBOL_DIGITS, digits);
+  return((int)digits);
+}
+
 double NormalizeP(double price){ return(NormalizeDouble(price, _Digits())); }
 
 double PointValueMoney()
@@ -109,8 +124,10 @@ bool IsNewBar()
 
 bool SpreadOK()
 {
-  double ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-  double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+  double ask = 0.0;
+  double bid = 0.0;
+  SymbolInfoDouble(_Symbol, SYMBOL_ASK, ask);
+  SymbolInfoDouble(_Symbol, SYMBOL_BID, bid);
   if(ask<=0.0 || bid<=0.0) return(false);
   double sp = (ask - bid)/_Point();
   return((int)sp <= Inp_MaxSpreadPoints);
@@ -604,14 +621,18 @@ int CountAllPositionsThisSymbol()
 
 double StopsLevelPoints()
 {
-  double stops = SymbolInfoInteger(_Symbol, SYMBOL_TRADE_STOPS_LEVEL);
+  long stopsLevel = 0;
+  SymbolInfoInteger(_Symbol, SYMBOL_TRADE_STOPS_LEVEL, stopsLevel);
+  double stops = (double)stopsLevel;
   if(stops < 0.0) stops = 0.0;
   return(stops * _Point());
 }
 
 double FreezeLevelPoints()
 {
-  double freeze = SymbolInfoInteger(_Symbol, SYMBOL_TRADE_FREEZE_LEVEL);
+  long freezeLevel = 0;
+  SymbolInfoInteger(_Symbol, SYMBOL_TRADE_FREEZE_LEVEL, freezeLevel);
+  double freeze = (double)freezeLevel;
   if(freeze < 0.0) freeze = 0.0;
   return(freeze * _Point());
 }
@@ -644,8 +665,10 @@ bool ComputeSLTP(int dir, double &lot, double &sl, double &tp)
   sl = 0.0;
   tp = 0.0;
 
-  double ask = SymbolInfoDouble(_Symbol, SYMBOL_ASK);
-  double bid = SymbolInfoDouble(_Symbol, SYMBOL_BID);
+  double ask = 0.0;
+  double bid = 0.0;
+  SymbolInfoDouble(_Symbol, SYMBOL_ASK, ask);
+  SymbolInfoDouble(_Symbol, SYMBOL_BID, bid);
   double price = (dir>0) ? ask : bid;
   if(price<=0.0) return(false);
 
@@ -670,9 +693,12 @@ bool ComputeSLTP(int dir, double &lot, double &sl, double &tp)
   if(pointValue<=0.0 || pointCount<=0.0) return(false);
 
   lot = riskMoney / (pointCount * pointValue);
-  double step = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP);
-  double minLot = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN);
-  double maxLot = SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX);
+  double step = 0.0;
+  double minLot = 0.0;
+  double maxLot = 0.0;
+  SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_STEP, step);
+  SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MIN, minLot);
+  SymbolInfoDouble(_Symbol, SYMBOL_VOLUME_MAX, maxLot);
   if(step<=0.0) step = 0.01;
   if(minLot<=0.0) minLot = Inp_MinLot;
   if(maxLot<=0.0) maxLot = Inp_MaxLot;
@@ -750,7 +776,11 @@ void MoveToBreakEven()
     double openPrice = PositionGetDouble(POSITION_PRICE_OPEN);
     double stopLoss = PositionGetDouble(POSITION_SL);
     double takeProfit = PositionGetDouble(POSITION_TP);
-    double price = (type==POSITION_TYPE_BUY) ? SymbolInfoDouble(_Symbol, SYMBOL_BID) : SymbolInfoDouble(_Symbol, SYMBOL_ASK);
+    double bid = 0.0;
+    double ask = 0.0;
+    SymbolInfoDouble(_Symbol, SYMBOL_BID, bid);
+    SymbolInfoDouble(_Symbol, SYMBOL_ASK, ask);
+    double price = (type==POSITION_TYPE_BUY) ? bid : ask;
 
     double atr = GetATR(1);
     if(atr<=0.0) atr = 10.0 * _Point();
