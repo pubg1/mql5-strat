@@ -1,0 +1,51 @@
+Backtest Checklist for BRRJ
+===========================
+
+Platform
+--------
+* MetaTrader 5 build 4000 or newer.
+* Broker data with both hedging and netting support (the EA handles both).
+
+Symbol & Timeframes
+-------------------
+* Default optimisation timeframe: M15.
+* Tested symbols: EURUSD, GBPUSD, XAUUSD. Any liquid major is fine if DOM data is supplied.
+
+Data Preparation
+----------------
+* Tick Data Suite (TDS2) configuration:
+  - GMT offset: 0.
+  - DST: Auto.
+  - Spread: 15 points fixed (override to match broker if required).
+  - Slippage: 0 by default; enable 0.5 pip for stress tests.
+* Built-in MT5 backtester:
+  - Use “Every tick based on real ticks”.
+  - Ensure DOM depth is available if `Inp_UseDOM=true`.
+
+Mandatory Smoke Test
+--------------------
+1. Load the expert with `00_Sanity_必出单.set`.
+2. Date range: most recent 60 days.
+3. Expectation: at least one trade per week; confirms order pipeline and gatekeeping.
+
+Targeted Presets
+----------------
+* Breakout trend confirmation: `BR_Trend_OnlyLong.set` on EURUSD M15.
+  - Expect trading only on bullish higher time frame bias.
+  - Verify RVOL filtering is active via expert log messages.
+* Mean reversion focus: `RJ_Only.set` on EURUSD M15.
+  - Expect trades only after bands re-enter.
+
+Advanced Feature Checks
+-----------------------
+* DOM imbalance: enable `Inp_UseDOM=true`, `Inp_DOM_Depth=5`, `Inp_DOM_Imb=1.30`.
+  - Monitor log for “MarketBookAdd failed” (safe fallback) or imbalance verdicts.
+* Volume Profile targeting: enable `Inp_UseVP=true` and `Inp_VP_FilterMode=3 (TargetAtPOC)`.
+  - Confirm resulting positions immediately set TP to the calculated POC.
+* Daily loss guard: set `Inp_DailyLossStop` to a low threshold (e.g., 50).
+  - Backtest should cease opening new trades once realised daily losses meet threshold.
+
+Reporting
+---------
+* Export statement with modelling quality and fill ratio for validation.
+* Document which optional modules were active (RVOL, DOM, VP) for each run.
