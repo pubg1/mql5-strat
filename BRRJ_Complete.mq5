@@ -146,8 +146,8 @@ bool SessionContainsHour(int hour)
 bool InSession()
 {
   if(!Inp_UseSession) return(true);
-  datetime now = TimeCurrent();
-  int hour = TimeHour(now);
+  datetime currentTime = TimeCurrent();
+  int hour = TimeHour(currentTime);
   return(SessionContainsHour(hour));
 }
 
@@ -842,9 +842,9 @@ bool DailyLossLimitReached(double &lossAmount)
   lossAmount = 0.0;
   if(Inp_DailyLossStop <= 0.0) return(false);
 
-  datetime now = TimeCurrent();
-  datetime start = DayStart(now);
-  if(!HistorySelect(start, now)) return(false);
+  datetime currentTime = TimeCurrent();
+  datetime start = DayStart(currentTime);
+  if(!HistorySelect(start, currentTime)) return(false);
 
   int total = HistoryDealsTotal();
   int idx = total;
@@ -896,11 +896,11 @@ void FlatAtSessionEndCheck()
   if(!Inp_FlatAtSessionEnd) return;
   if(!Inp_UseSession) return;
 
-  datetime now = TimeCurrent();
-  int hour = TimeHour(now);
+  datetime currentTime = TimeCurrent();
+  int hour = TimeHour(currentTime);
 
-  bool sessionNow = SessionContainsHour(hour);
-  if(sessionNow) return;
+  bool isSessionActive = SessionContainsHour(hour);
+  if(isSessionActive) return;
 
   CloseAllPositions();
 }
